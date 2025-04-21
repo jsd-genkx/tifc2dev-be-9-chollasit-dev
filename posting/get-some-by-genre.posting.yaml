@@ -1,0 +1,5 @@
+name: Get Some by Genre
+url: http://localhost:3000/books
+params:
+- name: genre
+  value: Fiction

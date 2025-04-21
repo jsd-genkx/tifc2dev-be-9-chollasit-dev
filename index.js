@@ -1,46 +1,70 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 
-// Middleware to parse JSON bodies
 app.use(express.json());
 
-// Simulated data for API
 const books = [
-  { id: 1, title: "1984", author: "George Orwell", genre: "Dystopian" },
+  { id: 1, title: '1984', author: 'George Orwell', genre: 'Dystopian' },
   {
     id: 2,
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    genre: "Fiction",
+    title: 'To Kill a Mockingbird',
+    author: 'Harper Lee',
+    genre: 'Fiction',
   },
 ];
 
-// Filter books by genre (optional)
-app.get("/books", (req, res, next) => {
+// GET books by genre (optional)
+app.get('/books', (req, res, next) => {
   setTimeout(() => {
     const { genre } = req.query;
-    //TODO: ADD CODE HERE ⬇️ to Filter books by genre.
     const filteredBooks = books.filter((book) => book.genre.includes(genre));
-    //TODO: ADD CODE HERE ⬇️
-  }, 1000); // Simulate a 1-second delay
+    const noFilteredBooks = filteredBooks.length === 0;
+
+    try {
+      if (noFilteredBooks) {
+        const booksNotFound = new Error('Filtered books not found');
+        booksNotFound.status = 400;
+        throw booksNotFound;
+      }
+    } catch (error) {
+      return next(error);
+    }
+
+    res.send(filteredBooks);
+  }, 1000);
 });
 
 // GET specific book by ID with async/await
-app.get("/books/:id", async (req, res, next) => {
+app.get('/books/:id', async (req, res, next) => {
   const book = await new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const foundBook = books.find((b) => b.id === parseInt(req.params.id, 10));
-      if (foundBook) {
-        resolve(foundBook);
-      } else {
-        //TODO: ADD CODE to reject the promise
-      }
-    }, 1000); // Simulate a 1-second delay
+    const foundBook = books.find((b) => b.id === parseInt(req.params.id, 10));
+    if (foundBook) {
+      resolve(foundBook);
+    } else {
+      const bookNotFound = new Error('Book not found');
+      bookNotFound.status = 404;
+      reject(bookNotFound);
+    }
   });
-  //TODO: ADD CODE HERE ⬇️
+
+  try {
+    if (book instanceof Error) {
+      throw book;
+    }
+
+    res.send(book);
+  } catch (error) {
+    next(error);
+  }
 });
 
-//TODO: ADD CODE HERE ⬇️
+app.use((err, req, res, next) => {
+  const response = {
+    message: err.message ?? 'The unexpected',
+    status: err.status ?? 400,
+  };
+  res.status(response.status).send(response);
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -1,0 +1,2 @@
+name: Get One by ID
+url: http://localhost:3000/books/1

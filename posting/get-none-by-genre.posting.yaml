@@ -1,0 +1,5 @@
+name: Get None by Genre
+url: http://localhost:3000/books
+params:
+- name: genre
+  value: non_existed_genre
